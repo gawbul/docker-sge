@@ -51,6 +51,11 @@ ENV SGE_ROOT /opt/sge
 RUN echo Y | ./scripts/distinst -local -allall -libs -noexit
 WORKDIR $SGE_ROOT
 #RUN ./inst_sge -m -x -csp
+ENV PATH /opt/sge/bin:/opt/sge/bin/lx-amd64/:$PATH
 
 # return to home directory
 WORKDIR $HOME
+
+# clean up
+RUN rm *.deb
+RUN rm *.jar
