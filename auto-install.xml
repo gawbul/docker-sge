@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<AutomatedInstallation langpack="eng">
+<com.izforge.izpack.panels.CheckedHelloPanel id="hellopanel"/>
+<com.izforge.izpack.panels.HTMLInfoPanel id="infopanel"/>
+<com.izforge.izpack.panels.HTMLLicencePanel id="licensepanel"/>
+<com.izforge.izpack.panels.TargetPanel id="targetpanel">
+<installpath>/usr/local/izpack</installpath>
+</com.izforge.izpack.panels.TargetPanel>
+<com.izforge.izpack.panels.PacksPanel id="packspanel">
+<pack index="0" name="Core" selected="true"/>
+<pack index="1" name="HTML Documentation" selected="true"/>
+<pack index="2" name="PDF Documentation" selected="true"/>
+<pack index="3" name="Javadocs Documentation" selected="true"/>
+<pack index="4" name="Utilities" selected="true"/>
+<pack index="5" name="Sample" selected="true"/>
+</com.izforge.izpack.panels.PacksPanel>
+<com.izforge.izpack.panels.SummaryPanel id="summarypanel"/>
+<com.izforge.izpack.panels.InstallPanel id="installpanel"/>
+<com.izforge.izpack.panels.ShortcutPanel id="shortcutpanel"/>
+<com.izforge.izpack.panels.FinishPanel id="finishpanel"/>
+</AutomatedInstallation>
