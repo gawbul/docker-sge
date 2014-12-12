@@ -3,20 +3,33 @@
 # VERSION 0.1
 
 # use vanilla ubuntu base image
-FROM ubuntu
+FROM ubuntu:14.04
 
 # maintained by me
 MAINTAINER Steve Moss <gawbul@gmail.com>
 
-# set HOME environment variable is /root
+# add pin priority to some graphical packages to stop them installing and borking the build
+RUN echo "Package: xserver-xorg*\nPin: release *\nPin-Priority: -1" >> /etc/apt/preferences
+RUN echo "Package: unity*\nPin: release *\nPin-Priority: -1" >> /etc/apt/preferences
+RUN echo "Package: gnome*\nPin: release *\nPin-Priority: -1" >> /etc/apt/preferences
+
+# install required software as per README.BUILD
+RUN apt-get update -y
+RUN apt-get upgrade -y
+RUN apt-get install -y wget darcs git mercurial tcsh build-essential automake autoconf openssl libssl-dev munge libmunge2 libmunge-dev libjemalloc1 libjemalloc-dev db5.3-util libdb-dev libncurses5 libncurses5-dev libpam0g libpam0g-dev libpacklib-lesstif1-dev libmotif-dev libxmu-dev libxpm-dev hwloc libhwloc-dev openjdk-7-jre openjdk-7-jdk ant ant-optional javacc junit libswing-layout-java libxft2 libxft-dev libreadline-dev man gawk
+
+# set environment variables
 ENV HOME /root
+
+# expose ports
+EXPOSE 6444
+EXPOSE 6445
+EXPOSE 6446
 
 # add files to container from local directory
 ADD izpack-auto-install.xml $HOME/izpack-auto-install.xml
 ADD sge-auto-install.conf $HOME/sge-auto-install.conf
-
-# install required software as per README.BUILD
-RUN apt-get update && apt-get -y install wget darcs git mercurial tcsh build-essential automake autoconf openssl libssl-dev munge libmunge2 libmunge-dev libjemalloc1 libjemalloc-dev db5.3-util libdb-dev libncurses5 libncurses5-dev libpam0g libpam0g-dev libpacklib-lesstif1-dev libmotif-dev libxmu-dev libxpm-dev hwloc libhwloc-dev openjdk-7-jre openjdk-7-jdk ant ant-optional javacc junit libswing-layout-java libxft2 libxft-dev libreadline-dev vim tmux man gawk 
+ADD docker-sge-init.sh $HOME/docker-sge-init.sh
 
 # change to home directory
 WORKDIR $HOME
@@ -50,18 +63,14 @@ RUN git clone http://arc.liv.ac.uk/repos/git/sge
 WORKDIR $HOME/sge/source
 
 # install SGE
-RUN mkdir /opt/sge
 ENV SGE_ROOT /opt/sge
+RUN mkdir /opt/sge
 RUN useradd -m -s /bin/bash -U sgeadmin
-RUN echo `hostname` > ~/sge_hostname
 RUN sh scripts/bootstrap.sh && ./aimk && ./aimk -man
 RUN echo Y | ./scripts/distinst -local -allall -libs -noexit
 WORKDIR $SGE_ROOT
-RUN ./inst_sge -m -x -s -csp -auto ~/sge-auto-install.conf
+RUN ./inst_sge -m -x -s -auto ~/sge-auto-install.conf
 ENV PATH /opt/sge/bin:/opt/sge/bin/lx-amd64/:/opt/sge/utilbin/lx-amd64:$PATH
-
-# expose ports
-EXPOSE 6444 6445 6446
 
 # return to home directory
 WORKDIR $HOME
@@ -70,5 +79,11 @@ WORKDIR $HOME
 RUN rm *.deb
 RUN rm *.jar
 
-# fix hostname issue
-RUN echo "`hostname -i` `cat ~/sge_hostname`" >> /etc/hosts
+# set hostname
+#RUN sudo su root -c hostname docker-sge && \
+#echo "docker-sge" > /etc/hostname && \
+#cat /etc/hosts | sed "1s/.*/`hostname -i` docker-sge/" > /etc/hosts
+
+# commands to run on execution
+RUN chmod ug+x docker-sge-init.sh
+CMD ./docker-sge-init.sh
