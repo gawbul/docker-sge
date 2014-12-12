@@ -3,7 +3,7 @@
 # VERSION 0.1
 
 # use vanilla ubuntu base image
-FROM ubuntu:14.04
+FROM phusion/baseimage:0.9.15
 
 # maintained by me
 MAINTAINER Steve Moss <gawbul@gmail.com>
@@ -27,9 +27,10 @@ EXPOSE 6445
 EXPOSE 6446
 
 # add files to container from local directory
-ADD izpack-auto-install.xml $HOME/izpack-auto-install.xml
-ADD sge-auto-install.conf $HOME/sge-auto-install.conf
-ADD docker-sge-init.sh $HOME/docker-sge-init.sh
+ADD izpack-auto-install.xml $HOME/izpack_auto_install.xml
+ADD sge-auto-install.conf $HOME/sge_auto_install.conf
+ADD docker-sge-init.sh /etc/my_init.d/01_docker_sge_init.sh
+RUN chmod ug+x /etc/my_init.d/01_docker-sge-init.sh
 
 # change to home directory
 WORKDIR $HOME
@@ -41,7 +42,7 @@ RUN wget -c http://www.mirrorservice.org/sites/archive.ubuntu.com/ubuntu/pool/ma
 RUN wget -c http://archive.cloudera.com/one-click-install/lucid/cdh3-repository_1.0_all.deb
 
 # install izpack
-RUN java -jar IzPack-install-4.3.5.jar ~/izpack-auto-install.xml
+RUN java -jar IzPack-install-4.3.5.jar ~/izpack_auto_install.xml
 ENV PATH /usr/local/izpack/bin:$PATH
 
 # install hadoop
@@ -69,7 +70,7 @@ RUN useradd -m -s /bin/bash -U sgeadmin
 RUN sh scripts/bootstrap.sh && ./aimk && ./aimk -man
 RUN echo Y | ./scripts/distinst -local -allall -libs -noexit
 WORKDIR $SGE_ROOT
-RUN ./inst_sge -m -x -s -auto ~/sge-auto-install.conf
+RUN ./inst_sge -m -x -s -auto ~/sge_auto_install.conf
 ENV PATH /opt/sge/bin:/opt/sge/bin/lx-amd64/:/opt/sge/utilbin/lx-amd64:$PATH
 
 # return to home directory
@@ -79,11 +80,5 @@ WORKDIR $HOME
 RUN rm *.deb
 RUN rm *.jar
 
-# set hostname
-#RUN sudo su root -c hostname docker-sge && \
-#echo "docker-sge" > /etc/hostname && \
-#cat /etc/hosts | sed "1s/.*/`hostname -i` docker-sge/" > /etc/hosts
-
-# commands to run on execution
-RUN chmod ug+x docker-sge-init.sh
-CMD ./docker-sge-init.sh
+# start my_init on execution
+CMD ["/sbin/my_init"]
