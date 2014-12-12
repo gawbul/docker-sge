@@ -8,6 +8,9 @@ FROM phusion/baseimage:0.9.15
 # maintained by me
 MAINTAINER Steve Moss <gawbul@gmail.com>
 
+# regenerate host ssh keys
+RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
+
 # add pin priority to some graphical packages to stop them installing and borking the build
 RUN echo "Package: xserver-xorg*\nPin: release *\nPin-Priority: -1" >> /etc/apt/preferences
 RUN echo "Package: unity*\nPin: release *\nPin-Priority: -1" >> /etc/apt/preferences
@@ -27,10 +30,10 @@ EXPOSE 6445
 EXPOSE 6446
 
 # add files to container from local directory
-ADD izpack-auto-install.xml $HOME/izpack_auto_install.xml
-ADD sge-auto-install.conf $HOME/sge_auto_install.conf
-ADD docker-sge-init.sh /etc/my_init.d/01_docker_sge_init.sh
-RUN chmod ug+x /etc/my_init.d/01_docker-sge-init.sh
+ADD izpack_auto_install.xml $HOME/izpack_auto_install.xml
+ADD sge_auto_install.conf $HOME/sge_auto_install.conf
+ADD docker_sge_init.sh /etc/my_init.d/01_docker_sge_init.sh
+RUN chmod ug+x /etc/my_init.d/01_docker_sge_init.sh
 
 # change to home directory
 WORKDIR $HOME
@@ -79,6 +82,7 @@ WORKDIR $HOME
 # clean up
 RUN rm *.deb
 RUN rm *.jar
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # start my_init on execution
 CMD ["/sbin/my_init"]
