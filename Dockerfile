@@ -95,11 +95,11 @@ RUN echo export PATH=/opt/sge/bin:/opt/sge/bin/lx-amd64/:/opt/sge/utilbin/lx-amd
 
 # add SGE configuration file to local directory
 ADD sge_exec_host.conf $HOME/sge_exec_host.conf
-RUN sed -i "s/HOSTNAME/$HOSTNAME/" $HOME/sge_exec_host.conf
 ADD sge_queue.conf $HOME/sge_queue.conf
 
 # start SGE and configure the SGE setup
-RUN /etc/init.d/sgemaster.docker-sge start \
+RUN sed -i "s/HOSTNAME/$HOSTNAME/" $HOME/sge_exec_host.conf \
+&& /etc/init.d/sgemaster.docker-sge start \
 && /etc/init.d/sgeexecd.docker-sge start \
 && qconf -au sgeadmin arusers \
 && qconf -Me $HOME/sge_exec_host.conf \
