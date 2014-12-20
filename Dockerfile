@@ -39,6 +39,8 @@ RUN apt-get install -y wget darcs git mercurial tcsh build-essential automake au
 ADD izpack_auto_install.xml /root/izpack_auto_install.xml
 ADD sge_auto_install.conf /root/sge_auto_install.conf
 ADD docker_sge_init.sh /etc/my_init.d/01_docker_sge_init.sh
+ADD sge_exec_host.conf /root/sge_exec_host.conf
+ADD sge_queue.conf /root/sge_queue.conf
 RUN chmod ug+x /etc/my_init.d/01_docker_sge_init.sh
 
 # change to home directory
@@ -89,21 +91,14 @@ RUN usermod -a -G sudo sgeadmin
 RUN sh scripts/bootstrap.sh && ./aimk && ./aimk -man
 RUN echo Y | ./scripts/distinst -local -allall -libs -noexit
 WORKDIR $SGE_ROOT
-RUN ./inst_sge -m -x -s -auto ~/sge_auto_install.conf
+RUN ./inst_sge -m -x -s -auto ~/sge_auto_install.conf \
+&& /etc/my_init.d/01_docker_sge_init.sh && sed -i "s/HOSTNAME/`hostname`/" $HOME/sge_exec_host.conf \
+&& /opt/sge/bin/lx-amd64/qconf -au sgeadmin arusers \
+&& /opt/sge/bin/lx-amd64/qconf -Me $HOME/sge_exec_host.conf \
+&& /opt/sge/bin/lx-amd64/qconf -Aq $HOME/sge_queue.conf
+
 ENV PATH /opt/sge/bin:/opt/sge/bin/lx-amd64/:/opt/sge/utilbin/lx-amd64:$PATH
 RUN echo export PATH=/opt/sge/bin:/opt/sge/bin/lx-amd64/:/opt/sge/utilbin/lx-amd64:$PATH >> /etc/bashrc
-
-# add SGE configuration file to local directory
-ADD sge_exec_host.conf $HOME/sge_exec_host.conf
-ADD sge_queue.conf $HOME/sge_queue.conf
-
-# start SGE and configure the SGE setup
-RUN sed -i "s/HOSTNAME/$HOSTNAME/" $HOME/sge_exec_host.conf \
-&& /etc/init.d/sgemaster.docker-sge start \
-&& /etc/init.d/sgeexecd.docker-sge start \
-&& qconf -au sgeadmin arusers \
-&& qconf -Me $HOME/sge_exec_host.conf \
-&& qconf -Aq $HOME/sge_queue.conf
 
 # return to home directory
 WORKDIR $HOME
