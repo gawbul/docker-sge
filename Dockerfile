@@ -111,6 +111,8 @@ WORKDIR $HOME
 # clean up
 RUN rm *.deb
 RUN rm *.jar
+RUN rm *.tar.gz
+RUN rm -rf sge-8.1.8
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # start my_init on execution and pass bash to runit
