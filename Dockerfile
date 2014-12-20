@@ -67,11 +67,13 @@ RUN apt-get update && apt-get -y install hadoop-0.20 hadoop-0.20-native
 # probems with darcs too that docker doesn't like
 #RUN hg clone http://arc.liv.ac.uk/repos/hg/sge
 #RUN darcs get --lazy --set-scripts-executable http://arc.liv.ac.uk/repos/darcs/sge
-RUN echo "This takes ages! Please be patient..."
-RUN git clone http://arc.liv.ac.uk/repos/git/sge
+#RUN git clone http://arc.liv.ac.uk/repos/git/sge
+# download source tarball instead
+RUN wget -c http://arc.liv.ac.uk/downloads/SGE/releases/8.1.8/sge-8.1.8.tar.gz
+RUN tar -zxvf sge-8.1.8.tar.gz
 
-# change to the SGE source directory
-WORKDIR $HOME/sge/source
+# change working directory
+WORKDIR $HOME/sge-8.1.8/source
 
 # setup SGE env
 ENV SGE_ROOT /opt/sge
